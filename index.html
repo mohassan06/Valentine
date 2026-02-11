@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Be My Valentine 💘</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ff7aa2, #ffd1dc);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.88);
+      padding: 28px 26px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      text-align: center;
+      width: min(520px, 92vw);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2.2rem;
+    }
+
+    p {
+      margin: 10px 0 18px;
+      font-size: 1.05rem;
+    }
+
+    .taunt {
+      min-height: 26px;
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 14px 22px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.08s ease;
+    }
+    button:active { transform: scale(0.97); }
+
+    #yesBtn {
+      background: #ff2d55;
+      color: white;
+      box-shadow: 0 8px 18px rgba(255,45,85,0.25);
+    }
+
+    /* KEY FIX: fixed positioning so it can move anywhere */
+    #noBtn {
+      background: #ffffff;
+      color: #333;
+      border: 2px solid rgba(0,0,0,0.08);
+      position: fixed;
+      left: 60vw;     /* starting position */
+      top: 55vh;
+      z-index: 9999;
+    }
+
+    .tiny {
+      font-size: 0.9rem;
+      opacity: 0.85;
+      margin-top: 10px;
+    }
+
+    /* hearts */
+    .heart {
+      position: fixed;
+      font-size: 22px;
+      pointer-events: none;
+      animation: floatUp 1.6s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-140px) scale(1.6); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p class="taunt" id="taunt">Choose wisely 😌</p>
+
+    <div class="buttons">
+      <button id="yesBtn">Yes 💖</button>
+      <!-- No button is fixed, not inside this layout in a meaningful way -->
+      <button id="noBtn">No 🙄</button>
+    </div>
+
+    <div class="tiny">P.S. the “No” button is allergic to rejection.</div>
+  </div>
+
+  <script>
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const taunt = document.getElementById("taunt");
+    const card = document.getElementById("card");
+
+    let dodges = 0;
+
+    const taunts = [
+      "Nice try 😭",
+      "Absolutely not happening 😂",
+      "You thought.",
+      "Your mouse has no power here 😈",
+      "Skill issue 🤏",
+      "Stop chasing me, I’m shy 🏃‍♀️",
+      "Babe… just click YES 😌",
+      "This is embarrassing for you 😭"
+    ];
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function moveNoButton() {
+      dodges++;
+
+      // After enough dodges, let the No button “give up”
+      if (dodges >= 8) {
+        noBtn.textContent = "Okay fine 😭";
+        taunt.textContent = "Alright alright, you’re persistent…";
+        // Stop running away
+        noBtn.removeEventListener("pointerenter", moveNoButton);
+        noBtn.removeEventListener("mouseover", moveNoButton);
+        noBtn.removeEventListener("touchstart", touchDodge);
+        return;
+      }
+
+      taunt.textContent = taunts[Math.floor(Math.random() * taunts.length)];
+
+      const padding = 12;
+      const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+      const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+
+      const x = rand(padding, maxX);
+      const y = rand(padding, maxY);
+
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top = `${y}px`;
+    }
+
+    function touchDodge(e) {
+      e.preventDefault();  // important or the tap becomes a click
+      moveNoButton();
+    }
+
+    // Better than mouseover, works for mouse/pen; keep mouseover as backup
+    noBtn.addEventListener("pointerenter", moveNoButton);
+    noBtn.addEventListener("mouseover", moveNoButton);
+
+    // Phone support
+    noBtn.addEventListener("touchstart", touchDodge, { passive: false });
+
+    // If she manages to click the "Okay fine 😭" button, it still becomes YES (funny)
+    noBtn.addEventListener("click", () => {
+      if (dodges >= 8) {
+        celebrate("You tried to say no… but it turned into yes 😌💖");
+      } else {
+        moveNoButton();
+      }
+    });
+
+    yesBtn.addEventListener("click", () => {
+      celebrate("CORRECT ANSWER ✅💘");
+    });
+
+    function heartBurst(count = 18) {
+      for (let i = 0; i < count; i++) {
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.textContent = Math.random() > 0.5 ? "💖" : "💘";
+        h.style.left = `${rand(0, window.innerWidth)}px`;
+        h.style.top = `${rand(window.innerHeight * 0.35, window.innerHeight * 0.85)}px`;
+        h.style.transform = `rotate(${rand(-25, 25)}deg)`;
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 1600);
+      }
+    }
+
+    function celebrate(message) {
+      heartBurst(26);
+      card.innerHTML = `
+        <h1>${message}</h1>
+        <p>Congratulations. You are now officially stuck with me 🥰</p>
+        <p><b>Date:</b> Valentine’s Day 💐<br><b>Time:</b> Whenever you say 😌</p>
+        <button id="okBtn" style="background:#ff2d55;color:#fff;">Lock it in 🔒</button>
+        <div class="tiny">Screenshot this as evidence.</div>
+      `;
+
+      document.getElementById("okBtn").addEventListener("click", () => {
+        heartBurst(40);
+        document.getElementById("okBtn").textContent = "It’s official 💍 (kinda)";
+      });
+    }
+  </script>
+</body>
+</html>
